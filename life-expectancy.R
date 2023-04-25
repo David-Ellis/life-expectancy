@@ -1,11 +1,12 @@
 # Calculating Life Expectancy 
+library(dplyr)
 
 mortality_rate <- function(data) {
   # central mortality rate (m_x)
   # m_x = total calendar year deaths/mid-year population
-  data["mort rate"] = data["Di"]/data["Pi"]
+  data["mort_rate"] = data["Di"]/data["Pi"]
   # Convert any places where rate>1 into 1
-  data["mort rate"][data["mort rate"] > 1] = 1
+  data["mort_rate"][data["mort_rate"] > 1] = 1
   return(data)
 }
 
@@ -24,7 +25,7 @@ int_width <- function(data){
   ni <- diff(data["xi"][[1]])
   
   # final "open ended" group is dependent on mortality rate
-  n_end <- 1/tail(data["surv_frac"], n=1)/tail(data["mort rate"], n=1)
+  n_end <- 1/tail(data["surv_frac"], n=1)/tail(data["mort_rate"], n=1)
   
   # combine and make new column 
   data["int_width"] <- c(ni, unlist(n_end))
@@ -34,8 +35,8 @@ int_width <- function(data){
 
 death_prop <- function(data) {
   # qi = niMi/(1 + ni(1 – ai)Mi)
-  numerator <- data["int_width"] * data["mort rate"]
-  denominator <- (1 + data["int_width"]*(1 - data["surv_frac"])*data["mort rate"])
+  numerator <- data["int_width"] * data["mort_rate"]
+  denominator <- (1 + data["int_width"]*(1 - data["surv_frac"])*data["mort_rate"])
   data["death_prob"] = numerator/denominator
   return(data)
 }
@@ -81,7 +82,7 @@ lived_in_int <- function(data) {
   
   # update last row
   alive_last <- data["alive"][[1]][nrow(data)]
-  mort_rate_last <- data["mort rate"][[1]][nrow(data)]
+  mort_rate_last <- data["mort_rate"][[1]][nrow(data)]
   data["lived_in_int"][[1]][nrow(data)] <- alive_last/mort_rate_last
   
   return(data)
@@ -95,13 +96,38 @@ years_beyond_int <- function(data) {
     Tx <- c(Tx, Tx_i)
   }
   
-  data["lived beyond"] = Tx
+  data["lived_beyond"] = Tx
   return(data)
 }
 
 final_life_expectancy <- function(data){
   # Calculate final life expectancy for each age
-  data["Life Expectancy"] = data["lived beyond"]/data["alive"]
+  data["Life_Expectancy"] = data["lived_beyond"]/data["alive"]
+  return(data)
+}
+
+sample_variance <- function(data) {
+  data <- data %>%
+    transform(next_life_exp = c(`Life_Expectancy`[-1], NA)) %>%
+    mutate(
+      sample_var = case_when(
+        Di == 0 ~ 0,
+        xi == max(data$xi) ~ `mort_rate`*(1-`mort_rate`)/Pi,
+        TRUE ~ death_prob**2*(1-death_prob)/Di),
+      weighted_var = case_when(
+        xi == max(data$xi) ~ alive^2 / mort_rate^4 * sample_var,
+        TRUE ~ alive^2*((1-surv_frac)*int_width + next_life_exp)^2*sample_var),
+      lived_beyond_var = rev(cumsum(rev(weighted_var))),
+      obs_live_exp_var = lived_beyond_var/alive**2,
+      Life_Expectancy_upper = Life_Expectancy + 1.96*sqrt(obs_live_exp_var),
+      Life_Expectancy_lower = Life_Expectancy - 1.96*sqrt(obs_live_exp_var),
+      ) %>%
+    select(-c(next_life_exp))
+  
+  #data <- data[, lived_beyond_var := rev(cumsum(rev(data$weighted_var)))]
+  
+
+  
   return(data)
 }
 
@@ -125,13 +151,14 @@ life_exp <- function(data, l0 = 100000) {
   # calculate life expectancy for each interval
   data <- final_life_expectancy(data)
   
+  data <- sample_variance(data)
   return(data)
 }
 
-library(readxl)
-# Load in the data
-input <- read_excel("data/example_data.xlsx", sheet = 2)
-# Calculate basic life expectancy
-output <- life_exp(input)
+# library(readxl)
+# # Load in the data
+# input <- read_excel("data/example_data.xlsx", sheet = 2)
+# # Calculate basic life expectancy
+# output <- life_exp(input)
 
 
