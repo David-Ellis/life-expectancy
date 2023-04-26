@@ -124,10 +124,6 @@ sample_variance <- function(data) {
       ) %>%
     select(-c(next_life_exp))
   
-  #data <- data[, lived_beyond_var := rev(cumsum(rev(data$weighted_var)))]
-  
-
-  
   return(data)
 }
 
@@ -155,10 +151,57 @@ life_exp <- function(data, l0 = 100000) {
   return(data)
 }
 
-# library(readxl)
+good_health_perc <- function(data) {
+  first_xi <- which(!is.na(data$Spop_w))[1]
+  last_xi <- tail(which(!is.na(data$Spop_w)), 1)
+
+  data <- data %>%
+    mutate(
+      good_health_perc = case_when(
+        !is.na(Spop_w) ~ Spop_gh_w/Spop_w,
+        xi < data$xi[first_xi] ~ data$Spop_gh_w[first_xi]/data$Spop_w[first_xi]*AF,
+        xi > data$xi[last_xi] ~ data$Spop_gh_w[last_xi]/data$Spop_w[last_xi]*AF,
+        TRUE ~ NA
+      )
+    )
+  
+  return(data)
+}
+
+good_health_years <- function(data) {
+  data <- data %>%
+    mutate(good_heath_in_int = lived_in_int * good_health_perc)
+  return(data)
+}
+
+final_HLE <- function(data) {
+  # Tx_HLE
+  data <- data %>%
+    mutate(
+      healthy_years_beyond = rev(cumsum(rev(good_heath_in_int))),
+      HLE = healthy_years_beyond / alive
+      )
+  return(data)
+}
+
+health_life_exp <- function(LE_data, HLE_data) {
+  
+  data <- LE_data %>%
+    left_join(HLE_data)
+  
+  data <- good_health_perc(data)
+  data <- good_health_years(data)
+  data <- final_HLE(data)
+  
+  return(data)
+}
+
 # # Load in the data
-# input <- read_excel("data/example_data.xlsx", sheet = 2)
+# LE_input <- read_excel("data/example_data.xlsx", sheet = 2)
+# HLE_input <- read_excel("data/example_data.xlsx", sheet = 3)
+# 
 # # Calculate basic life expectancy
-# output <- life_exp(input)
+# LE <- life_exp(LE_input)
+# output <- health_life_exp(LE, HLE_input)
 
 
