@@ -15,7 +15,7 @@ LE <- life_exp(LE_input)
 print(head(output %>% select(c(xi, 
                                Life_Expectancy,
                                LE_LowerCI, 
-                               LE_LowerCI))))
+                               LE_UpperCI))))
 
 # Calculate healthy life expectancy
 output <- healthy_life_exp(LE, HLE_input)

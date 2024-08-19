@@ -36,12 +36,13 @@ print(
          select(c(xi, Life_Expectancy,LE_LowerCI, LE_LowerCI)), 5)
          )
 ```
-    ##   xi Life_Expectancy Life_Expectancy_lower Life_Expectancy_upper
-    ## 1  0        79.42223              79.26539              79.57906
-    ## 2  1        78.94195              78.79526              79.08864
-    ## 3  5        75.00262              74.85706              75.14819
-    ## 4 10        70.03901              69.89407              70.18395
-    ## 5 15        65.07321              64.92884              65.21757
+    ##   xi Life_Expectancy LE_LowerCI LE_UpperCI
+    ## 1  0        79.16675   79.13992   79.19358
+    ## 2  1        78.50159   78.47626   78.52691
+    ## 3  5        74.55509   74.53000   74.58018
+    ## 4 10        69.58574   69.56078   69.61070
+    ## 5 15        64.62036   64.59555   64.64516
+    ## 6 20        59.71711   59.69266   59.74156
     
 ## Calculate healthy life expectancy
 
