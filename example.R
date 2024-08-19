@@ -11,10 +11,14 @@ HLE_input <- read_excel("data/example_data.xlsx", sheet = 3)
 
 # Calculate basic life expectancy
 LE <- life_exp(LE_input)
-output <- health_life_exp(LE, HLE_input)
+output <- healthy_life_exp(LE, HLE_input)
 
 print(head(output %>% select(c(xi, Life_Expectancy,
-                               Life_Expectancy_lower, Life_Expectancy_upper))))
+                               LE_LowerCI, 
+                               LE_LowerCI,
+                               HLE,
+                               HLE_LowerCI,
+                               HLE_UpperCI))))
 
 ggplot(output, aes(xi, Life_Expectancy)) +
   geom_line(aes(color = "Life Expectancy"), size = 1) +
@@ -30,5 +34,5 @@ ggplot(output, aes(xi, Life_Expectancy)) +
         #axis.text = element_text(colour = 1, size = 12),
         legend.background = element_blank(),
         legend.box.background = element_rect(colour = "black"),
-        legend.position = c(0.8, 0.9))
-
+        legend.position = "inside",
+        legend.position.inside = c(0.8, 0.85))

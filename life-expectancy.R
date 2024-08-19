@@ -119,8 +119,8 @@ sample_variance <- function(data) {
         TRUE ~ alive^2*((1-surv_frac)*int_width + next_life_exp)^2*sample_var),
       lived_beyond_var = rev(cumsum(rev(weighted_var))),
       obs_live_exp_var = lived_beyond_var/alive**2,
-      Life_Expectancy_upper = Life_Expectancy + 1.96*sqrt(obs_live_exp_var),
-      Life_Expectancy_lower = Life_Expectancy - 1.96*sqrt(obs_live_exp_var),
+      LE_UpperCI = Life_Expectancy + 1.96*sqrt(obs_live_exp_var),
+      LE_LowerCI = Life_Expectancy - 1.96*sqrt(obs_live_exp_var),
       ) %>%
     select(-c(next_life_exp))
   
@@ -184,7 +184,36 @@ final_HLE <- function(data) {
   return(data)
 }
 
-health_life_exp <- function(LE_data, HLE_data) {
+HLE_CI <- function(data) {
+  output <- data %>%
+    mutate(
+      Spop_gh2 = case_when(
+        is.na(DE) ~ Spop_gh,
+        TRUE ~ Spop_gh / DE ^ 2
+      ),
+      var_Spop = good_health_perc * (1 - good_health_perc) / Spop_gh2,
+      d1 = lived_in_int ^ 2 * var_Spop,
+      d2 = rev(cumsum(d1)),
+      var_HLE = d2 / alive ^ 2,
+      HLE_LowerCI = HLE - 1.96 * var_HLE,
+      HLE_UpperCI = HLE + 1.96 * var_HLE
+    ) %>%
+    # remove unnecessary columns
+    select(
+      -c(Spop_gh2, var_Spop, d1, d2, var_HLE)
+    )
+  
+  # check CI make sense
+  if (
+    any(output$HLE_LowerCI > output$HLE)|
+    any(output$HLE_UpperrCI < output$HLE)
+    ) {
+    stop("HLC CI incompatible with HLE.")
+  }
+  return(output)
+}
+
+healthy_life_exp <- function(LE_data, HLE_data) {
   
   data <- LE_data %>%
     left_join(HLE_data)
@@ -192,7 +221,7 @@ health_life_exp <- function(LE_data, HLE_data) {
   data <- good_health_perc(data)
   data <- good_health_years(data)
   data <- final_HLE(data)
-  
+  data <- HLE_CI(data)
   return(data)
 }
 

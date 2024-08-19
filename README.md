@@ -33,10 +33,8 @@ output <- life_exp(input)
 # print output
 print(
   head(output %>% 
-         select(c(xi, 
-                  Life_Expectancy, 
-                  Life_Expectancy_lower,
-                  Life_Expectancy_upper)), 5))
+         select(c(xi, Life_Expectancy,LE_LowerCI, LE_LowerCI)), 5)
+         )
 ```
     ##   xi Life_Expectancy Life_Expectancy_lower Life_Expectancy_upper
     ## 1  0        79.42223              79.26539              79.57906
@@ -44,3 +42,23 @@ print(
     ## 3  5        75.00262              74.85706              75.14819
     ## 4 10        70.03901              69.89407              70.18395
     ## 5 15        65.07321              64.92884              65.21757
+    
+## Calculate healthy life expectancy
+
+`healthy_life_exp()` takes the output from `life_exp()` as an input.
+
+```
+# Calculate healthy life expectancy
+HLE_output <- healthy_life_exp(output)
+
+# print output
+# print output
+print(
+  head(output %>% 
+         select(
+         c(xi, 
+         HLE,
+         HLE_LowerCI, 
+         HLE_LowerCI)), 5)
+         )
+```
