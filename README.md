@@ -1,6 +1,7 @@
 ## Required data
 
 Function `life_exp()` takes data with 3 variables:
+
 - xi: Age at start of interval 
 - Pi: Population in age interval 
 - Di: Number of deaths in interval
@@ -9,7 +10,7 @@ library(readxl)
 library(dplyr)
     
 # Load in the data
-input <- read_excel("../data/example_data.xlsx", sheet = 2)
+input <- read_excel("data/example_data.xlsx", sheet = 2)
     
 print(head(input, 5))
 ```
@@ -28,11 +29,11 @@ print(head(input, 5))
 source("../life-expectancy.R")
 
 # Calculate basic life expectancy
-output <- life_exp(input)
+LE <- life_exp(input)
 
 # print output
 print(
-  head(output %>% 
+  head(LE %>% 
          select(c(xi, Life_Expectancy,LE_LowerCI, LE_LowerCI)), 5)
          )
 ```
@@ -46,15 +47,25 @@ print(
     
 ## Calculate healthy life expectancy
 
-`healthy_life_exp()` takes the output from `life_exp()` as an input.
+`healthy_life_exp()` takes the output from `life_exp()` as an input and an additional data frame with the following 6 variables:
+
+- Spop_w:	Survey population (n_weighted base)
+- Spop_gh_w:	Survey population in good general health (n_weighted)
+- Spop:	Unweighted base: Survey Population
+- Spop_gh:	Survey population in good health (n_unweighted)
+- AF:	Adjustment Factors (age-bands <1 to 10-14, 85-89 to 90+)
+- DE:	Design effect
 
 ```
+# Load additional data
+HLE_input <- read_excel("data/example_data.xlsx", sheet = 3)
+
 # Calculate healthy life expectancy
-HLE_output <- healthy_life_exp(output)
+HLE <- healthy_life_exp(LE, HLE_input)
 
 # print output
 print(
-  head(output %>% 
+  head(HLE %>% 
          select(
          c(xi, 
          HLE,
