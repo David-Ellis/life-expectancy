@@ -52,7 +52,6 @@ print(
 HLE_output <- healthy_life_exp(output)
 
 # print output
-# print output
 print(
   head(output %>% 
          select(
