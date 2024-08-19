@@ -11,15 +11,20 @@ HLE_input <- read_excel("data/example_data.xlsx", sheet = 3)
 
 # Calculate basic life expectancy
 LE <- life_exp(LE_input)
-output <- healthy_life_exp(LE, HLE_input)
 
-print(head(output %>% select(c(xi, Life_Expectancy,
+print(head(output %>% select(c(xi, 
+                               Life_Expectancy,
                                LE_LowerCI, 
-                               LE_LowerCI,
+                               LE_LowerCI))))
+
+# Calculate healthy life expectancy
+output <- healthy_life_exp(LE, HLE_input)
+print(head(output %>% select(c(xi, 
                                HLE,
                                HLE_LowerCI,
                                HLE_UpperCI))))
 
+# plot result
 ggplot(output, aes(xi, Life_Expectancy)) +
   geom_line(aes(color = "Life Expectancy"), size = 1) +
   geom_line(data = output, 
